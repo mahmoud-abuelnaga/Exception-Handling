@@ -1,26 +1,35 @@
 // Parser Classes
 import javax.xml.parsers.DocumentBuilderFactory;
-// import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Document;
 import java.io.File;
 
 // Parsing elements
 import org.w3c.dom.NodeList;
-// import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 // Exceptions classes
 import java.io.IOException;
 import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 
+// Functions Requirements
+import java.util.regex.Pattern;
 import java.util.Arrays;
 import java.util.List;
-// Regex
-import java.util.regex.Pattern;
+
+// Writing file classes
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.TransformerFactoryConfigurationError;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 public class ARXMLParser {
     private Document doc; // DOM document that holds the nodes tree
+    private File f; // File to parse
 
     /**
      * Constructor for ARXML parser that takes the File to parse and create a XML Document out of it
@@ -40,6 +49,7 @@ public class ARXMLParser {
             throw new EmptyAutosarFileException();  // throw a EmptyAutosarFileException
         }
 
+        f = file;
         doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file); // parsing the file into Document object
         doc.getDocumentElement().normalize(); // Process text nodes deep down the tree
     }
@@ -111,10 +121,30 @@ public class ARXMLParser {
         return sortedContainers;
     }
 
-    public void sort() {
+    /**
+     * Function that write a new sorted version out of passed XML file based on SHORT-NAME
+     * @throws ParserConfigurationException
+     * @throws TransformerFactoryConfigurationError
+     * @throws TransformerException
+     */
+    public void writeSortedVersion() throws ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+        // Sort the CONTAINER elements
         Element[] containers = getElements("CONTAINER");
         Element[] sortedContainers = sortContainers(containers, getNodesText("SHORT-NAME", containers));
-        printElementsData(sortedContainers);
+
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument(); // Create new XML document using DocumentBuilder
+        // Create the XML file structure
+        Element rootElement = document.createElement("AUTOSAR"); // Create the root element of document 'AUTOSAR'
+        for(Element container: sortedContainers) {  // loop through each container
+            rootElement.appendChild(document.importNode(container, true)); // Add it inside the root element 'AUTOSAR'
+        }
+        document.appendChild(rootElement);   // Add the root element to the document
+
+        // Write content into XML file
+        Transformer transformer = TransformerFactory.newInstance().newTransformer();    // Create a transformer to write the xml data to a file
+        DOMSource source = new DOMSource(document);  // The source from which we will write the file
+        StreamResult result = new StreamResult(new File("./files/" + f.getName().substring(0, f.getName().indexOf('.')) + "_mod.arxml"));
+        transformer.transform(source, result);
     }
 
     public static void printElementsData(Element[] elements) {
