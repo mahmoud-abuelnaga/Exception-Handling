@@ -43,7 +43,7 @@ public class ARXMLParser {
             throw new NotValidAutosarFileException();   // throw a NotValidAutosarFileException
         }
 
-        if (file.length() == 0) { // If file is empty
+        if (file.length() == 0) { // If file is empty or doesn't exist
             throw new EmptyAutosarFileException();  // throw a EmptyAutosarFileException
         }
 
@@ -87,54 +87,65 @@ public class ARXMLParser {
      * Note that: the function only returns the text of the first node it finds in an element
      * @param node the node to get its text
      * @param elements elements where to search for this node
+     * @throws InvalidElementException
      * @return  String[] nodesText
      */
-    private String[] getNodesText(String node, Element[] elements) {
+    private String[] getNodesText(String node, Element[] elements) throws InvalidElementException {
         String[] nodesText = new String[elements.length];   // Array to store the text of nodes extracted from elements
         for (int i = 0; i < elements.length; i++) { // Loop through each element
-            nodesText[i] = elements[i].getElementsByTagName(node).item(0).getTextContent();   // Get the node text of the ith element
+            try {
+                nodesText[i] = elements[i].getElementsByTagName(node).item(0).getTextContent();   // Get the node text of the ith element
+            } catch (java.lang.NullPointerException e) {    // If the node doesn't exist in the element
+                throw new InvalidElementException();    // throw InvalidElementException
+            }
         }
 
         return nodesText;
     }
 
     /**
-     * Function takes the CONTAINER elements and the array of SHORT-NAME to sort based upon. The function sorts the shortNames alphabetically and sort the containers based upon that sorting.
-     * @param containers array of CONTAINER elements to sort
-     * @param shortNames array of SHORT-NAME elements to sort upon
-     * @return ELEMENT[] sortedContainers
+     * Function takes the elements to sort and the array of InnerNodes Text to sort based upon. The function sorts the InnerNodesText alphabetically and sort the elements based upon that sorting.
+     * @param elements array of container elements to sort
+     * @param InnerNodesText array of text inside elements' child nodes to sort upon
+     * @return ELEMENT[] sortedElements
      */
-    private Element[] sortContainers(Element[] containers, String[] shortNames) {
-        List<String> names = Arrays.asList(shortNames);
+    private Element[] sortElements(Element[] elements, String[] InnerNodesText) {
+        List<String> names = Arrays.asList(InnerNodesText);
         // Create sorted copy of SHORT-NAMES
-        String[] sortedNames = shortNames.clone();
+        String[] sortedNames = InnerNodesText.clone();
         Arrays.sort(sortedNames);
 
         // Create sorted array of containers
-        Element[] sortedContainers = new Element[containers.length];
-        for(int i = 0; i < sortedNames.length; i++) {
-            sortedContainers[i] = containers[names.indexOf(sortedNames[i])];
+        Element[] sortedElements = new Element[elements.length];
+        for(int i = 0; i < sortedNames.length; i++) {   // Loop through each sorted text
+            sortedElements[i] = elements[names.indexOf(sortedNames[i])];
         }
 
-        return sortedContainers;
+        return sortedElements;
+    }
+
+    private Element[] sortElements(Element[] elements, String node) {
+        return sortElements(elements, getNodesText(node, elements));
     }
 
     /**
-     * Function that write a new sorted version out of passed XML file based on SHORT-NAME
+     * A function that writes a sorted version of XML's passed parentNodeToSort based on the InnerNodeToSortUpon. Note: the InnerNodeToSortUpon needs to contain String
+     * @param parentNodeToSort
+     * @param InnerNodetoSortUpon
      * @throws ParserConfigurationException
      * @throws TransformerFactoryConfigurationError
      * @throws TransformerException
      */
-    public void writeSortedVersion() throws ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
+    public void writeSortedVersion(String parentNodeToSort, String InnerNodetoSortUpon) throws ParserConfigurationException, TransformerFactoryConfigurationError, TransformerException {
         // Sort the CONTAINER elements
-        Element[] containers = getElements("CONTAINER");
-        Element[] sortedContainers = sortContainers(containers, getNodesText("SHORT-NAME", containers));
+        Element[] elements = getElements(parentNodeToSort);
+        Element[] sortedElements = sortElements(elements, InnerNodetoSortUpon);
 
         Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument(); // Create new XML document using DocumentBuilder
         // Create the XML file structure
         Element rootElement = document.createElement("AUTOSAR"); // Create the root element of document 'AUTOSAR'
-        for(Element container: sortedContainers) {  // loop through each container
-            rootElement.appendChild(document.importNode(container, true)); // Add it inside the root element 'AUTOSAR'
+        for(Element element: sortedElements) {  // loop through each container
+            rootElement.appendChild(document.importNode(element, true)); // Add it inside the root element 'AUTOSAR'
         }
         document.appendChild(rootElement);   // Add the root element to the document
 

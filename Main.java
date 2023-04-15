@@ -15,6 +15,6 @@ public class Main {
         String path = sc.nextLine();
         sc.close();
         ARXMLParser parser = new ARXMLParser(path);
-        parser.writeSortedVersion();
+        parser.writeSortedVersion("CONTAINER", "SHORT-NAME");
     }
 }
