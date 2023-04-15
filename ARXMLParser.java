@@ -58,26 +58,44 @@ public class ARXMLParser {
         this(new File(path));
     }
 
-    private Element[] getContainers() {
-        NodeList containers = doc.getElementsByTagName("CONTAINER"); // Get CONTAINERs NodeList
-        Element[] conts = new Element[containers.getLength()];  // Element array to store CONTAINERs
+    /**
+     * A function that return Element array of corresponding tag
+     * @param node the tag to get its nodes or elements
+     * @return  Element[] tag
+     */
+    private Element[] getElements(String node) {
+        NodeList nodes = doc.getElementsByTagName(node); // Get NodeList of tag
+        Element[] elements = new Element[nodes.getLength()];  // Element array to store the nodes (elements) of correponding tag
 
-        for (int i = 0; i < containers.getLength(); i++) {  // Loop through each CONTAINER
-            conts[i] = (Element)containers.item(i); // Get ith container, cast it to Element and store it in 'conts' array
+        for (int i = 0; i < nodes.getLength(); i++) {  // Loop through each node in NodeList
+            elements[i] = (Element)nodes.item(i); // Get ith node, cast it to Element and store it in 'elements' array
         }
 
-        return conts;
+        return elements;
     }
 
-    private String[] getShortNames(Element[] containers) {
-        String[] names = new String[containers.length];
-        for (int i = 0; i < containers.length; i++) {
-            names[i] = containers[i].getElementsByTagName("SHORT-NAME").item(0).getTextContent();   // Get the SHORT-NAME in CONTAINER
+    /**
+     * The function takes the node to get its text and the Element[] where to find this node. It returns String[], where each element correponds the text of a node.
+     * Note that: the function only returns the text of the first node it finds in an element
+     * @param node the node to get its text
+     * @param elements elements where to search for this node
+     * @return  String[] nodesText
+     */
+    private String[] getNodesText(String node, Element[] elements) {
+        String[] nodesText = new String[elements.length];   // Array to store the text of nodes extracted from elements
+        for (int i = 0; i < elements.length; i++) { // Loop through each element
+            nodesText[i] = elements[i].getElementsByTagName(node).item(0).getTextContent();   // Get the node text of the ith element
         }
 
-        return names;
+        return nodesText;
     }
 
+    /**
+     * Function takes the CONTAINER elements and the array of SHORT-NAME to sort based upon. The function sorts the shortNames alphabetically and sort the containers based upon that sorting.
+     * @param containers array of CONTAINER elements to sort
+     * @param shortNames array of SHORT-NAME elements to sort upon
+     * @return ELEMENT[] sortedContainers
+     */
     private Element[] sortContainers(Element[] containers, String[] shortNames) {
         List<String> names = Arrays.asList(shortNames);
         // Create sorted copy of SHORT-NAMES
@@ -94,8 +112,8 @@ public class ARXMLParser {
     }
 
     public void sort() {
-        Element[] containers = getContainers();
-        Element[] sortedContainers = sortContainers(containers, getShortNames(containers));
+        Element[] containers = getElements("CONTAINER");
+        Element[] sortedContainers = sortContainers(containers, getNodesText("SHORT-NAME", containers));
         printElementsData(sortedContainers);
     }
 
