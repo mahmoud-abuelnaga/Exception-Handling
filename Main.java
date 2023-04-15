@@ -5,9 +5,16 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactoryConfigurationError;
 import org.xml.sax.SAXException;
 
+// Scanner class
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, NotValidAutosarFileException, TransformerFactoryConfigurationError, TransformerException {
-        ARXMLParser parser = new ARXMLParser("./files/test.arxml");
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter the path of the file to parse: ");
+        String path = sc.nextLine();
+        sc.close();
+        ARXMLParser parser = new ARXMLParser(path);
         parser.writeSortedVersion();
     }
 }

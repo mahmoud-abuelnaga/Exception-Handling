@@ -6,7 +6,6 @@ import java.io.File;
 // Parsing elements
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 // Exceptions classes
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.util.List;
 
 // Writing file classes
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.TransformerFactoryConfigurationError;
