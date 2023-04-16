@@ -7,7 +7,6 @@ import org.xml.sax.SAXException;
 
 // Scanner class
 import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) throws IOException, SAXException, ParserConfigurationException, NotValidAutosarFileException, TransformerFactoryConfigurationError, TransformerException {
         Scanner sc = new Scanner(System.in);
@@ -15,6 +14,6 @@ public class Main {
         String path = sc.nextLine();
         sc.close();
         ARXMLParser parser = new ARXMLParser(path);
-        parser.writeSortedVersion("CONTAINER", "SHORT-NAME");
+        parser.writeSortedVersion("CONTAINER", "SHORT-NAME");   // Write sorted version of XML where you arrange CONTAINER elements based on SHORT-NAME
     }
 }

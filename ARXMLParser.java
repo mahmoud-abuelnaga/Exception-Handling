@@ -14,7 +14,10 @@ import javax.xml.parsers.ParserConfigurationException;
 
 // Functions Requirements
 import java.util.regex.Pattern;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 // Writing file classes
@@ -96,7 +99,7 @@ public class ARXMLParser {
             try {
                 nodesText[i] = elements[i].getElementsByTagName(node).item(0).getTextContent();   // Get the node text of the ith element
             } catch (java.lang.NullPointerException e) {    // If the node doesn't exist in the element
-                throw new InvalidElementException();    // throw InvalidElementException
+                nodesText[i] = "";
             }
         }
 
@@ -110,15 +113,28 @@ public class ARXMLParser {
      * @return ELEMENT[] sortedElements
      */
     private Element[] sortElements(Element[] elements, String[] InnerNodesText) {
-        List<String> names = Arrays.asList(InnerNodesText);
-        // Create sorted copy of SHORT-NAMES
-        String[] sortedNames = InnerNodesText.clone();
-        Arrays.sort(sortedNames);
+        List<String> names = new ArrayList<>(Arrays.asList(InnerNodesText)) ;
+        List<Element> nodes = new ArrayList<>(Arrays.asList(elements)) ;
+        // Put Nodes with no InnerNode of specified type at end of nodes and remove the empty strings from InnerNodesText
+        int indexOfEmpty = names.indexOf("");
+        while (indexOfEmpty != -1) {    // while there are empty strings
+            nodes.add(nodes.remove(indexOfEmpty));  // Remove the node that doesn't have and InnerNode of specified type and it to the end
+            names.remove(indexOfEmpty); // Romove the empty string to not sort it
+            indexOfEmpty = names.indexOf("");   // Get the next empty string
+        }
+    
+        List<String> sortedNames = new ArrayList<String>(names);
+        Collections.sort(sortedNames);
 
-        // Create sorted array of containers
+
+        // Create sorted array of elements
         Element[] sortedElements = new Element[elements.length];
-        for(int i = 0; i < sortedNames.length; i++) {   // Loop through each sorted text
-            sortedElements[i] = elements[names.indexOf(sortedNames[i])];
+        for(int i = 0; i < sortedElements.length; i++) {   // Loop through each sorted text
+            try {
+                sortedElements[i] = nodes.get(names.indexOf(sortedNames.get(i)));
+            } catch (IndexOutOfBoundsException e) {
+                sortedElements[i] = nodes.get(i);
+            }
         }
 
         return sortedElements;
